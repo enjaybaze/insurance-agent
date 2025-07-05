@@ -22,7 +22,7 @@ def invoke_gemini_model(project_id, location, model_name, text_prompt, file_deta
     Returns:
         A tuple (response_text, error_message). response_text is None if an error occurs.
     """
-    print(f"Invoking Gemini model: {model_name} in {project}/{location}")
+    print(f"Invoking Gemini model: {model_name} in {project_id}/{location}") # Corrected 'project' to 'project_id'
     print(f"Text prompt (first 100 chars): {text_prompt[:100]}...")
     print(f"File details for Gemini: {file_details_list}")
 
