@@ -54,66 +54,53 @@ def invoke_gemini_model(project_id, location, model_name, text_prompt, file_deta
                     )
                 except Exception as e:
                     print(f"Warning: Could not create Part from URI for {file_detail['gcs_uri']}. Error: {e}")
-        else:
-            print(f"Warning: Missing GCS URI or content type for file: {file_detail.get('original_filename', 'unknown')}")
+            # Removed the 'else' block associated with the for-loop as it was potentially confusing/misplaced.
+            # The warning for missing GCS URI or content type is now handled by the `if` condition inside the loop.
 
+        # Ensure there's at least one text part; Gemini requires non-empty contents.
+        # This validation should be inside the try block as it depends on prompt_parts.
+        if not any(hasattr(part, 'text') and part.text for part in prompt_parts): # Check if any part has actual text
+            if not any(hasattr(part, 'file_data') for part in prompt_parts): # Check if any part is a file part
+                 return None, "Cannot send an empty prompt (no text and no files) to Gemini."
+            # If there are files but no initial text prompt, it might be okay for some models/use-cases.
+            # The current construction always adds a text_prompt part first.
 
-    # Ensure there's at least one text part; Gemini requires non-empty contents.
-    if not any(part.text for part in prompt_parts if hasattr(part, 'text') and part.text):
-        if not file_details_list: # No text and no files
-             return None, "Cannot send an empty prompt (no text and no files) to Gemini."
-        # If there are files but no initial text prompt, some models might still need a placeholder text part.
-        # Let's assume the `text_prompt` (which includes SYSTEM_PROMPT) is always present.
+        generation_config_dict = {
+            "max_output_tokens": 8192,
+            "temperature": 0.4,
+            "top_p": 1.0,
+        }
 
-    generation_config = {
-        "max_output_tokens": 8192, # Max for Gemini 1.5 Pro
-        "temperature": 0.4,       # Adjust as needed
-        "top_p": 1.0,
-        # "top_k": 32 # Not typically used with top_p
-    }
+        gen_config_instance = GenerationConfig(**generation_config_dict)
 
-    # Safety settings (optional, configure as needed using imports from vertexai.generative_models)
-    # safety_settings = [
-    #    SafetySetting(category=HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE),
-    # ]
+        response = model.generate_content(
+            contents=prompt_parts,
+            generation_config=gen_config_instance,
+            # safety_settings=safety_settings, # Define if needed
+            # tools=tools # Define if needed
+        )
 
-    # GenerationConfig is from vertexai.generative_models
-    gen_config_instance = GenerationConfig(
-        max_output_tokens=generation_config["max_output_tokens"],
-        temperature=generation_config["temperature"],
-        top_p=generation_config["top_p"]
-        # top_k can be added if needed
-    )
+        # print(f"Raw Gemini Response (vertexai SDK): {response}")
 
-    # try block was already started above for vertexai.init
-    response = model.generate_content(
-        contents=prompt_parts,
-        generation_config=gen_config_instance,
-        # safety_settings=safety_settings,
-        # tools=tools # if using function calling
-    )
+        if not response.candidates:
+            block_reason_msg = "Unknown"
+            if response.prompt_feedback and response.prompt_feedback.block_reason:
+                block_reason_msg = response.prompt_feedback.block_reason_message or str(response.prompt_feedback.block_reason)
+            safety_ratings_str = ", ".join([f"{rating.category}: {rating.probability}" for rating in response.prompt_feedback.safety_ratings]) if response.prompt_feedback else "N/A"
+            error_detail = f"Gemini (vertexai SDK) returned no candidates. Possible block reason: {block_reason_msg}. Safety ratings: [{safety_ratings_str}]"
+            print(error_detail)
+            return None, error_detail
 
-    # print(f"Raw Gemini Response (vertexai SDK): {response}")
+        candidate = response.candidates[0]
+        if not candidate.content or not candidate.content.parts:
+            finish_reason_str = str(candidate.finish_reason) if candidate.finish_reason else "Unknown"
+            safety_ratings_str = ", ".join([f"{rating.category}: {rating.probability}" for rating in candidate.safety_ratings])
+            error_detail = f"Gemini (vertexai SDK) response candidate was empty or malformed. Finish reason: {finish_reason_str}. Safety ratings: [{safety_ratings_str}]"
+            print(error_detail)
+            return None, error_detail
 
-    if not response.candidates:
-        block_reason_msg = "Unknown"
-        if response.prompt_feedback and response.prompt_feedback.block_reason:
-            block_reason_msg = response.prompt_feedback.block_reason_message or str(response.prompt_feedback.block_reason)
-        safety_ratings_str = ", ".join([f"{rating.category}: {rating.probability}" for rating in response.prompt_feedback.safety_ratings]) if response.prompt_feedback else "N/A"
-        error_detail = f"Gemini (vertexai SDK) returned no candidates. Possible block reason: {block_reason_msg}. Safety ratings: [{safety_ratings_str}]"
-        print(error_detail)
-        return None, error_detail
-
-    candidate = response.candidates[0]
-    if not candidate.content or not candidate.content.parts:
-        finish_reason_str = str(candidate.finish_reason) if candidate.finish_reason else "Unknown"
-        safety_ratings_str = ", ".join([f"{rating.category}: {rating.probability}" for rating in candidate.safety_ratings])
-        error_detail = f"Gemini (vertexai SDK) response candidate was empty or malformed. Finish reason: {finish_reason_str}. Safety ratings: [{safety_ratings_str}]"
-        print(error_detail)
-        return None, error_detail
-
-    response_text = "".join([part.text for part in candidate.content.parts if hasattr(part, 'text') and part.text is not None])
-    return response_text, None
+        response_text = "".join([part.text for part in candidate.content.parts if hasattr(part, 'text') and part.text is not None])
+        return response_text, None
 
     except google.api_core.exceptions.GoogleAPIError as e:
         error_message = f"Google API Error invoking Gemini model (vertexai SDK) {model_name_short}: {e}"
@@ -122,6 +109,7 @@ def invoke_gemini_model(project_id, location, model_name, text_prompt, file_deta
     except Exception as e:
         error_message = f"Unexpected error invoking Gemini model (vertexai SDK) {model_name_short}: {str(e)}"
         print(error_message)
+        # import traceback; print(traceback.format_exc()) # For more detailed debugging
         return None, error_message
 
 
