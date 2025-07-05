@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baze Insurance FNOL Agent</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Baze Insurance FNOL Agent</h1>
+        </header>
+        <main class="main-content">
+            <div class="input-pane">
+                <div class="control-group">
+                    <label for="model-select">Select Model:</label>
+                    <select id="model-select">
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                        <option value="gemma-3">Gemma 3</option>
+                        <option value="llama-3.3">Llama 3.3</option>
+                    </select>
+                </div>
+
+                <div class="control-group prompt-area">
+                    <label for="prompt-input">Your Prompt:</label>
+                    <textarea id="prompt-input" placeholder="Enter your claim details or query here..."></textarea>
+                </div>
+
+                <div class="control-group file-area">
+                    <label for="file-upload">Upload Documents/Images:</label>
+                    <input type="file" id="file-upload" multiple>
+                    <ul id="selected-files-list"><li>No files selected.</li></ul>
+                </div>
+
+                <button id="submit-button">Analyze Claim</button>
+            </div>
+
+            <div class="output-pane" id="response-area">
+                <!-- AI response will be displayed here. Initial message could be a placeholder. -->
+                <p class="placeholder-text">Response will appear here once a claim is analyzed.</p>
+            </div>
+        </main>
+    </div>
+    <script src="/script.js"></script>
+</body>
+</html>
