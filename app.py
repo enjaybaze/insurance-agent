@@ -98,22 +98,22 @@ def analyze_claim():
     if 'model' not in request.form:
         return jsonify({"error": "Model selection is missing"}), 400
 
-    selected_model = request.form['model']
+    selected_model = request.form['model'] # Correctly get the model key from the form
     user_prompt = request.form['prompt']
     files = request.files.getlist('files') # Get list of files
 
-    model_config = MODEL_CONFIGS.get(selected_model_key)
+    model_config = MODEL_CONFIGS.get(selected_model) # Use the correct variable 'selected_model'
     if not model_config:
-        return jsonify({"error": f"Invalid model key: {selected_model_key}"}), 400
+        return jsonify({"error": f"Invalid model key: {selected_model}"}), 400 # Use selected_model in error msg too
 
     # Further validation for endpoint models
     if model_config['type'] == 'endpoint' and not model_config.get('endpoint_id'):
-        return jsonify({"error": f"Endpoint ID not configured for model: {selected_model_key}"}), 500
+        return jsonify({"error": f"Endpoint ID not configured for model: {selected_model}"}), 500 # Changed selected_model_key to selected_model
     if not GCP_PROJECT_ID or not GCS_BUCKET_NAME:
          return jsonify({"error": "Server configuration error: GCP_PROJECT_ID or GCS_BUCKET_NAME not set."}), 500
 
 
-    print(f"Received request for model: {selected_model_key} (Config: {model_config})")
+    print(f"Received request for model: {selected_model} (Config: {model_config})") # Use selected_model for logging
     print(f"User Prompt: {user_prompt}")
 
     uploaded_file_details = [] # Will store dicts with GCS URI, original_filename, content_type, etc.
