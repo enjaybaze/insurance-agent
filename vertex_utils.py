@@ -2,9 +2,12 @@ import os
 import google.auth
 import google.auth.transport.requests
 from google.cloud import aiplatform
+import vertexai
+from vertexai.generative_models import GenerativeModel, Tool
+from google.genai.types import HttpOptions, Part
 import google.api_core.exceptions # For specific API errors
-from google.cloud.aiplatform.generative_models import GenerativeModel, GenerationConfig # Import GenerativeModel and GenerationConfig directly
-from google.cloud.aiplatform_v1.types.content import Part # Content, Tool, FunctionDeclaration not used directly in current Gemini impl.
+# from google.cloud.aiplatform.generative_models import GenerativeModel, GenerationConfig # Import GenerativeModel and GenerationConfig directly
+# from google.cloud.aiplatform_v1.types.content import Part # Content, Tool, FunctionDeclaration not used directly in current Gemini impl.
 from google.protobuf import struct_pb2 # For endpoint model instances
 
 # --- Gemini Model Invocation ---
