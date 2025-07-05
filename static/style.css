@@ -1,130 +1,201 @@
-body {
-    font-family: 'Roboto', sans-serif;
+/* Basic CSS Reset */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
     margin: 0;
-    background-color: #f0f2f5; /* Light grey background */
-    color: #333;
+    padding: 0;
+}
+
+html {
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    height: 100%; /* Ensure html takes full height */
+}
+
+body {
+    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text */
+    display: flex; /* Use flex for overall layout */
+    flex-direction: column;
+    min-height: 100%; /* Ensure body takes at least full viewport height */
+    font-size: 16px; /* Base font size */
+}
+
+/* App Container - Manages overall structure */
+.app-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    flex-grow: 1; /* Allow app container to grow to fill body */
+    height: 100vh; /* Make app container take full viewport height */
 }
 
-header {
-    background-color: #ffffff; /* White header */
-    padding: 15px 30px;
-    border-bottom: 1px solid #e0e0e0; /* Light border */
-    text-align: center;
+/* Header Styling */
+.app-header {
+    background-color: #1e1e1e; /* Slightly lighter dark shade for header */
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #333; /* Subtle border */
+    text-align: left; /* Align title to the left like AI Studio */
 }
 
-header h1 {
+.app-header h1 {
     margin: 0;
-    font-size: 1.8em;
-    color: #1a73e8; /* Blue similar to Gemini */
-}
-
-main {
-    flex-grow: 1;
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.controls-container,
-.prompt-container,
-#response-area {
-    margin-bottom: 20px;
-}
-
-.controls-container label,
-.prompt-container label {
-    display: block;
-    margin-bottom: 8px;
+    font-size: 1.5em; /* Adjusted size */
+    color: #bb86fc; /* Accent color for title (example purple) */
     font-weight: 500;
-    color: #5f6368; /* Dark grey for labels */
 }
 
-#model-select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #dadce0;
-    border-radius: 4px;
-    font-size: 1em;
-    background-color: #fff;
+/* Main Content Area - Flex container for input and output panes */
+.main-content {
+    display: flex;
+    flex-grow: 1; /* Allows main-content to fill remaining space in app-container */
+    overflow: hidden; /* Prevent main content from causing page scroll */
+    padding: 1rem; /* Padding around the two panes */
+    gap: 1rem; /* Gap between input and output panes */
+}
+
+/* Input Pane Styling */
+.input-pane {
+    background-color: #1e1e1e; /* Card-like background for input area */
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem; /* Space between control groups */
+    width: 40%; /* Example width, can be adjusted */
+    min-width: 350px; /* Minimum width */
+    overflow-y: auto; /* Allow input pane to scroll if content overflows */
+    border: 1px solid #2c2c2c;
+}
+
+/* Output Pane Styling */
+.output-pane {
+    background-color: #1e1e1e; /* Card-like background for output area */
+    border-radius: 8px;
+    padding: 1.5rem;
+    flex-grow: 1; /* Output pane takes remaining space */
+    overflow-y: auto; /* Allow output pane to scroll */
+    border: 1px solid #2c2c2c;
+    display: flex; /* To help center placeholder */
+    flex-direction: column;
+}
+
+.output-pane .placeholder-text {
+    color: #757575; /* Dim color for placeholder */
+    font-size: 1.1em;
+    text-align: center;
+    margin: auto; /* Center placeholder text */
+}
+
+
+/* General Control Group Styling */
+.control-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.control-group label {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #b0b0b0; /* Lighter grey for labels */
+}
+
+/* Specific area styling within input-pane */
+.prompt-area {
+    flex-grow: 1; /* Allow prompt area to take more space */
+    display: flex;
+    flex-direction: column;
 }
 
 #prompt-input {
-    width: 100%;
-    min-height: 150px;
-    padding: 10px;
-    border: 1px solid #dadce0;
+    flex-grow: 1; /* Textarea fills available space in its parent */
+    min-height: 150px; /* Minimum height for prompt */
+}
+
+/* Form Elements Styling (General Dark Theme) */
+select,
+textarea,
+input[type="file"] {
+    background-color: #2c2c2c; /* Darker input background */
+    color: #e0e0e0;
+    border: 1px solid #444; /* Subtle border */
     border-radius: 4px;
+    padding: 0.75rem;
     font-size: 1em;
-    box-sizing: border-box;
-    resize: vertical;
+    width: 100%; /* Make inputs take full width of their container */
 }
 
-.file-upload-container {
-    margin-top: 10px;
-    margin-bottom: 15px;
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #bb86fc; /* Accent color on focus */
+    box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.25);
 }
 
-#file-upload {
-    display: block;
-    margin-top: 5px;
+textarea {
+    resize: vertical; /* Allow vertical resize */
+    line-height: 1.6;
 }
 
-#submit-button {
-    background-color: #1a73e8; /* Gemini blue */
-    color: white;
+input[type="file"] {
+    padding: 0.5rem; /* Adjust padding for file input */
+}
+
+input[type="file"]::file-selector-button {
+    background-color: #3f3f3f;
+    color: #e0e0e0;
     border: none;
-    padding: 12px 25px;
-    font-size: 1em;
+    padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    margin-right: 0.75rem;
+    transition: background-color 0.2s ease;
 }
 
-#submit-button:hover {
-    background-color: #1558b0; /* Darker blue on hover */
-}
-
-#response-area {
-    border: 1px solid #e0e0e0;
-    padding: 15px;
-    min-height: 100px;
-    background-color: #f8f9fa; /* Slightly off-white for response */
-    border-radius: 4px;
-    white-space: pre-wrap; /* Preserve formatting */
-}
-
-#response-area h3 {
-    margin-top: 0;
-    color: #1a73e8;
-}
-
-#response-area ul {
-    padding-left: 20px;
-}
-#response-area ul li {
-    margin-bottom: 8px;
-    line-height: 1.5;
+input[type="file"]::file-selector-button:hover {
+    background-color: #555;
 }
 
 #selected-files-list {
-    margin-top: 10px;
+    margin-top: 0.75rem;
     font-size: 0.9em;
-    color: #5f6368;
+    color: #a0a0a0;
+    list-style-type: disc; /* Explicitly set disc */
+    padding-left: 1.25rem; /* Standard padding for list items */
+}
+#selected-files-list li {
+    margin-bottom: 0.3rem;
+    word-break: break-all;
 }
 
-#selected-files-list li {
-    list-style-type: disc;
-    margin-left: 20px;
+
+/* Submit Button Styling */
+#submit-button {
+    background-color: #bb86fc; /* Accent color button */
+    color: #121212; /* Dark text on accent button for contrast */
+    font-weight: bold;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1.05em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    align-self: flex-start; /* Align button to the start of the flex container if needed */
+}
+
+#submit-button:hover {
+    background-color: #a050e0; /* Darker accent on hover */
+}
+
+#submit-button:active {
+    transform: translateY(1px);
 }
 
 #submit-button.loading {
-    background-color: #1558b0; /* Darker blue */
+    background-color: #a050e0;
     cursor: not-allowed;
 }
 
@@ -132,16 +203,110 @@ main {
     content: "...";
     display: inline-block;
     animation: loadingDots 1s infinite;
+    margin-left: 0.5em;
 }
 
 @keyframes loadingDots {
-    0%, 20% {
-        content: ".";
+    0%, 20% { content: "."; }
+    40% { content: ".."; }
+    60%, 100% { content: "..."; }
+}
+
+/* Response Area Content Styling */
+#response-area h3, #response-area h4 {
+    color: #bb86fc; /* Accent for headings in response */
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+}
+#response-area h3 { font-size: 1.3em; }
+#response-area h4 { font-size: 1.1em; }
+
+#response-area ul {
+    padding-left: 1.25rem; /* Indent bullet points */
+    margin-bottom: 1rem;
+}
+#response-area ul li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+#response-area pre { /* For raw_ai_response_preview */
+    background-color: #2a2a2a;
+    border: 1px solid #383838;
+    padding: 0.75rem;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 0.85em;
+    max-height: 200px; /* Limit height and make scrollable */
+    overflow-y: auto;
+    color: #c0c0c0; /* Lighter grey for preformatted text */
+}
+
+/* Error Message Styling in Response Area */
+#response-area div[style*="color: red"] { /* Target the inline styled error messages */
+    background-color: rgba(255, 82, 82, 0.1); /* Faint red background */
+    border: 1px solid rgba(255, 82, 82, 0.5);
+    color: #ff5252 !important; /* Ensure text is light red, override inline if necessary */
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+#response-area div[style*="color: red"] strong {
+    color: #ff8a80; /* Slightly different red for strong text */
+}
+#response-area div[style*="color: red"] ul {
+    margin-top: 0.5rem;
+}
+#response-area div[style*="color: red"] ul li {
+    color: #ff5252; /* Ensure list items also get the red color */
+}
+
+/* File Processing Issues (Partial Success) Styling */
+#response-area ul[style*="color: #cc8400;"], /* target by color is fragile, better to add class if possible */
+#response-area ul[style*="color: orange;"] {
+    border: 1px solid #cc8400;
+    background-color: rgba(204, 132, 0, 0.1);
+    padding: 0.75rem;
+    padding-left: 2rem; /* More padding for list items */
+    border-radius: 4px;
+}
+#response-area ul[style*="color: #cc8400;"] li,
+#response-area ul[style*="color: orange;"] li {
+    color: #ffab40 !important; /* Ensure text is orange */
+}
+
+
+/* Custom Scrollbars (Optional, WebKit browsers) */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #2c2c2c;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+/* Basic responsiveness: stack panes on smaller screens */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+        overflow: auto; /* Allow page to scroll if content overflows on small screens */
     }
-    40% {
-        content: "..";
+    .input-pane, .output-pane {
+        width: 100%; /* Full width for stacked panes */
+        min-width: unset;
+        max-height: 50vh; /* Limit height of panes on small screens */
     }
-    60%, 100% {
-        content: "...";
+    .app-container {
+        height: auto; /* Allow container to grow with content on small screens */
     }
 }
+```
