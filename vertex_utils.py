@@ -2,8 +2,9 @@ import os
 import google.auth
 import google.auth.transport.requests
 from google.cloud import aiplatform
-from google.cloud.aiplatform_v1.types.content import Part, Content
-from google.cloud.aiplatform_v1.types.tool import Tool, FunctionDeclaration
+import google.api_core.exceptions # For specific API errors
+from google.cloud.aiplatform.generative_models import GenerativeModel, GenerationConfig # Import GenerativeModel and GenerationConfig directly
+from google.cloud.aiplatform_v1.types.content import Part # Content, Tool, FunctionDeclaration not used directly in current Gemini impl.
 from google.protobuf import struct_pb2 # For endpoint model instances
 
 # --- Gemini Model Invocation ---
@@ -72,20 +73,20 @@ def invoke_gemini_model(project_id, location, model_name, text_prompt, file_deta
     }
 
     # Safety settings (optional, configure as needed)
-    # from google.cloud.aiplatform_v1.types import SafetySetting, HarmCategory
+    # from google.cloud.aiplatform.generative_models import SafetySetting, HarmCategory # Correct import if used
     # safety_settings = [
-    #     SafetySetting(category=HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=SafetySetting.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE),
-    #     # ... other categories
+    #    SafetySetting(category=HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=SafetySetting.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE),
+    #    # ... other categories
     # ]
 
     try:
-        # Using the higher-level SDK:
-        vertex_model = aiplatform.GenerativeModel(model_name_short)
+        # Using the higher-level SDK with direct import:
+        vertex_model = GenerativeModel(model_name_short) # Use imported GenerativeModel
         response = vertex_model.generate_content(
             contents=prompt_parts, # Pass the list of Part objects
-            generation_config=aiplatform.GenerationConfig(**generation_config), # Use the specific class
-            # safety_settings=safety_settings, # Uncomment and define if needed
-            # tools=[TOOL_CONFIG] # If using function calling
+            generation_config=GenerationConfig(**generation_config), # Use imported GenerationConfig
+            # safety_settings=safety_settings,
+            # tools=[TOOL_CONFIG]
         )
 
         # print(f"Raw Gemini Response: {response}") # Can be very verbose
