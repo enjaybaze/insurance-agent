@@ -235,20 +235,39 @@ def analyze_claim():
 
     # Construct prompt for AI, including metadata if available
     # This is a conceptual representation; actual formatting will depend on the model
-    ai_prompt_parts = [SYSTEM_PROMPT, f"\n\n[User Query Start]\n{user_prompt}\n[User Query End]"]
+    ai_prompt_parts = []
+    # Safety check for prompt components
+    if not isinstance(SYSTEM_PROMPT, str):
+        print("Warning: SYSTEM_PROMPT is not a string. This could lead to unexpected prompt construction.")
+        ai_prompt_parts.append(str(SYSTEM_PROMPT))
+    else:
+        ai_prompt_parts.append(SYSTEM_PROMPT)
+
+    if not isinstance(user_prompt, str):
+        print(f"Warning: user_prompt is not a string (type: {type(user_prompt)}). This could lead to unexpected prompt construction.")
+        ai_prompt_parts.append(f"\n\n[User Query Start]\n{str(user_prompt)}\n[User Query End]")
+    else:
+        ai_prompt_parts.append(f"\n\n[User Query Start]\n{user_prompt}\n[User Query End]")
+
 
     for i, file_detail in enumerate(uploaded_file_details):
-        ai_prompt_parts.append(f"\n\n--- Attached File {i+1} ({file_detail.get('original_filename', 'N/A')}) ---")
-        ai_prompt_parts.append(f"GCS URI: {file_detail.get('gcs_uri', 'N/A')}")
-        ai_prompt_parts.append(f"Content Type: {file_detail.get('content_type', 'N/A')}")
+        # Ensure all parts being appended are strings
+        original_filename = str(file_detail.get('original_filename', 'N/A'))
+        gcs_uri = str(file_detail.get('gcs_uri', 'N/A'))
+        content_type = str(file_detail.get('content_type', 'N/A'))
+
+        ai_prompt_parts.append(f"\n\n--- Attached File {i+1} ({original_filename}) ---")
+        ai_prompt_parts.append(f"GCS URI: {gcs_uri}")
+        ai_prompt_parts.append(f"Content Type: {content_type}")
+
         if 'extracted_metadata' in file_detail:
             meta_info = file_detail['extracted_metadata']
             if meta_info and not meta_info.get('error') and not meta_info.get('info'):
-                 ai_prompt_parts.append(f"Metadata: {str(meta_info)}") # Convert dict to string for prompt
+                 ai_prompt_parts.append(f"Metadata: {str(meta_info)}")
             elif meta_info.get('error'):
-                 ai_prompt_parts.append(f"Metadata Extraction Error: {meta_info['error']}")
+                 ai_prompt_parts.append(f"Metadata Extraction Error: {str(meta_info['error'])}")
             elif meta_info.get('info'):
-                 ai_prompt_parts.append(f"Metadata Info: {meta_info['info']}")
+                 ai_prompt_parts.append(f"Metadata Info: {str(meta_info['info'])}")
         ai_prompt_parts.append("--- End Attached File ---")
 
     final_ai_prompt = "\n".join(ai_prompt_parts)

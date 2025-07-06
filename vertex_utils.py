@@ -162,8 +162,22 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
     # Common pattern: {"prompt": "...", "max_tokens": ..., "temperature": ..., "images": ["gs://...", ...]}
     # We'll construct a generic one here. This is the MOST LIKELY part to need adjustment.
 
+    # Determine the correct input key based on the model type.
+    # For Gemma models deployed with Saxml, the key is "text_batch".
+    # For Llama models, this needs to be verified by the user/docs.
+    if "gemma" in endpoint_id.lower():
+        input_key = "text_batch"
+        print(f"Using input key 'text_batch' for Gemma model {endpoint_id}.")
+    elif "llama" in endpoint_id.lower():
+        input_key = "prompt" # Placeholder - VERIFY THIS for Llama models
+        print(f"Warning: Using placeholder input key 'prompt' for Llama model {endpoint_id}. If issues persist (e.g., prompt in response), this key needs to be verified and potentially changed to the model-specific key (e.g., 'inputs', 'instances', 'text_batch', etc.).")
+    else:
+        # Default for unknown model types, maintain original behavior before this change.
+        input_key = "prompt"
+        print(f"Warning: Unknown model type for endpoint {endpoint_id}. Defaulting to input key 'prompt'. This may need adjustment.")
+
     instance_dict = {
-        "prompt": text_prompt, # Assuming the endpoint expects a 'prompt' field
+        input_key: text_prompt,
         "max_tokens": 30000,    # Example, adjust as needed
         "temperature": 0.5,    # Example, adjust as needed
     }
@@ -213,27 +227,99 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
             return None, error_detail
 
         prediction_content = response.predictions[0]
-
+        ai_error_message = None
         response_text = None
+        keys_to_try = ["generated_text", "text", "output_text", "output", "prediction", "completion", "outputs"] # Added "completion" and "outputs"
+        input_like_key_substrings = ["prompt", "input", "query", "context", "text_batch", "echo", "instance"]
+
         if isinstance(prediction_content, dict):
-            keys_to_try = ["generated_text", "text", "output_text", "output", "prediction"]
+            found_by_key = False
+            # 1. Try common known keys
             for key in keys_to_try:
                 if key in prediction_content:
-                    if isinstance(prediction_content[key], str):
-                        response_text = prediction_content[key]
+                    value = prediction_content[key]
+                    if isinstance(value, str):
+                        response_text = value
+                        found_by_key = True
                         break
-                    elif isinstance(prediction_content[key], list) and len(prediction_content[key]) > 0 and isinstance(prediction_content[key][0], str):
-                        response_text = prediction_content[key][0]
+                    elif isinstance(value, list) and len(value) > 0 and isinstance(value[0], str):
+                        response_text = value[0] # Take the first string if it's a list of strings
+                        found_by_key = True
                         break
-            if response_text is None:
-                print(f"Warning: Could not find a standard text key in endpoint prediction dict: {prediction_content}. Using string representation.")
-                response_text = str(prediction_content)
+
+            if not found_by_key:
+                # 2. If not found, iterate through dict values, preferring non-input-like keys
+                candidate_strings = {}
+                other_strings = {}
+                for k, v in prediction_content.items():
+                    if isinstance(v, str):
+                        is_input_like = any(substr in k.lower() for substr in input_like_key_substrings)
+                        if not is_input_like:
+                            candidate_strings[k] = v
+                        else:
+                            other_strings[k] = v
+
+                if candidate_strings:
+                    response_text = max(candidate_strings.values(), key=len) # Longest from non-input-like
+                    print(f"Info: Used heuristic to extract text from dict. Key chosen by length from non-input-like keys: '{max(candidate_strings, key=lambda k_lambda: len(candidate_strings[k_lambda]))}'.")
+                elif other_strings: # Only if no non-input-like strings were found
+                    response_text = max(other_strings.values(), key=len) # Longest from input-like if no other choice
+                    print(f"Warning: Extracted text from a key that might be an input echo ('{max(other_strings, key=lambda k_lambda: len(other_strings[k_lambda]))}'). This might include the prompt.")
+
+            # 3. Check for known nested structures (e.g., HuggingFace Transformers format)
+            if response_text is None and "generated_text" in prediction_content.get("predictions", [{}])[0]: # Common for HF
+                 if isinstance(prediction_content["predictions"], list) and len(prediction_content["predictions"]) > 0:
+                     if isinstance(prediction_content["predictions"][0], dict) and "generated_text" in prediction_content["predictions"][0]:
+                        response_text = prediction_content["predictions"][0]["generated_text"]
+                        print("Info: Extracted text from nested 'predictions[0].generated_text'.")
+
+            if response_text is None: # If still no text found
+                ai_error_message = f"Failed to parse AI response. No standard text key or parsable string value found in the prediction dictionary. Content (first 200 chars): {str(prediction_content)[:200]}"
+                print(f"Error: {ai_error_message}")
+                return None, ai_error_message
+
         elif isinstance(prediction_content, str):
             response_text = prediction_content
+
+        elif isinstance(prediction_content, list): # Handles cases like a list of strings or list of dicts
+            processed_parts = []
+            if not prediction_content: # Empty list
+                ai_error_message = f"Prediction list was empty. Content: {str(prediction_content)[:200]}"
+                print(f"Error: {ai_error_message}")
+                return None, ai_error_message
+
+            for item_idx, item in enumerate(prediction_content):
+                item_text_segment = None
+                if isinstance(item, str):
+                    item_text_segment = item
+                elif isinstance(item, dict):
+                    # Try common keys
+                    for key in keys_to_try:
+                        if key in item and isinstance(item[key], str):
+                            item_text_segment = item[key]
+                            break
+                    # If not by common key, try non-input-like heuristic
+                    if item_text_segment is None:
+                        item_candidate_strings = {k:v for k,v in item.items() if isinstance(v,str) and not any(substr in k.lower() for substr in input_like_key_substrings)}
+                        if item_candidate_strings:
+                            item_text_segment = max(item_candidate_strings.values(), key=len)
+
+                if item_text_segment is not None:
+                    processed_parts.append(item_text_segment)
+                else:
+                    # If item is a dict and still no text, or other type, log and skip or convert
+                    print(f"Warning: Could not extract specific text from item {item_idx} (type: {type(item)}) in prediction list. Item (first 100 chars): {str(item)[:100]}")
+
+            if processed_parts:
+                response_text = "\n".join(processed_parts) # Or handle as a list if appropriate for caller
+            else:
+                ai_error_message = f"Prediction list contained no parsable text segments. Content (first 200 chars): {str(prediction_content)[:200]}"
+                print(f"Error: {ai_error_message}")
+                return None, ai_error_message
         else:
-            error_detail = f"Unexpected prediction format from endpoint. Expected dict or str, got {type(prediction_content)}. Content: {prediction_content}"
-            print(error_detail)
-            return None, error_detail
+            ai_error_message = f"Unexpected prediction format from endpoint. Expected dict, str, or list, got {type(prediction_content)}. Content (first 200 chars): {str(prediction_content)[:200]}"
+            print(f"Error: {ai_error_message}")
+            return None, ai_error_message
 
         return response_text, None
 
