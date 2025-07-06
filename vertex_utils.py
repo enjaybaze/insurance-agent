@@ -149,8 +149,10 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
         return None, f"Invalid Vertex AI Endpoint ID format: {endpoint_id}. Expected: projects/PROJECT_ID/locations/REGION/endpoints/ENDPOINT_ID_NUM"
 
     parsed_region = match.group("region_from_ep")
+    parsed_project_num = match.group("project_id_from_ep")
+    parsed_endpoint_id = match.group("endpoint_id_num")
 
-    base_url = f"https://{parsed_region}-aiplatform.googleapis.com/v1beta1/{endpoint_id}"
+    base_url = f"https://{parsed_endpoint_id}.{parsed_region}-{parsed_project_num}.prediction.vertexai.goog/v1/{endpoint_id}"
     print(f"Using OpenAI SDK with base_url: {base_url}")
 
     try:
@@ -163,7 +165,7 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
 
         client = openai.OpenAI(base_url=base_url, api_key=creds.token)
 
-        max_tokens_for_openai = 8192
+        max_tokens_for_openai = 30000
         temperature_for_openai = 0.5
 
         messages = [{"role": "user", "content": current_text_prompt}]
