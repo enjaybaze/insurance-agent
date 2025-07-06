@@ -169,12 +169,12 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
 
     # Add file URIs if the model supports it (e.g. under a key like "documents" or "images")
     # This is highly model-dependent. For now, let's assume a "gcs_uris" key.
-    #if file_details_list:
-    #    instance_dict["gcs_files"] = [
-    #        {"gcs_uri": detail["gcs_uri"], "mime_type": detail["content_type"], "filename": detail.get("original_filename")}
-    #        for detail in file_details_list
-    #    ]
-    #
+    if file_details_list:
+        instance_dict["gcs_files"] = [
+            {"gcs_uri": detail["gcs_uri"], "mime_type": detail["content_type"], "filename": detail.get("original_filename")}
+            for detail in file_details_list
+        ]
+
     # Convert dict to google.protobuf.Value for the predict call
     # For some models, just sending the dict might work if the underlying framework handles it.
     # However, to be more explicit or if issues arise, use struct_pb2.Value()
@@ -186,16 +186,15 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
     instances = [instance_dict]
 
     # Dedicated domain construction
-    sample_endpoint = f"{parsed_region}-aiplatform.googleapis.com"
     dedicated_domain = f"{parsed_endpoint_id_num}.{parsed_region}-{parsed_project_id_num}.prediction.vertexai.goog"
     print(f"Using dedicated domain for endpoint: {dedicated_domain}")
 
     try:
         # Use PredictionServiceClient with custom endpoint
-        client_options = {"api_endpoint": sample_endpoint}
+        client_options = {"api_endpoint": dedicated_domain}
         client = old_aiplatform.gapic.PredictionServiceClient(client_options=client_options)
 
-        response = client.predict(endpoint=dedicated_domain, instances=instances)
+        response = client.predict(endpoint=endpoint_name, instances=instances)
 
         # print(f"Raw Endpoint Response: {response}")
 
