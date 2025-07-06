@@ -164,7 +164,7 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
 
     instance_dict = {
         "prompt": text_prompt, # Assuming the endpoint expects a 'prompt' field
-        "max_tokens": 8192,    # Example, adjust as needed
+        "max_tokens": 30000,    # Example, adjust as needed
         "temperature": 0.5,    # Example, adjust as needed
     }
 
