@@ -11,6 +11,7 @@ from vertexai.generative_models import GenerativeModel, Part, GenerationConfig
 # Keep aiplatform for Endpoint interactions if they are separate
 from google.cloud import aiplatform as old_aiplatform # Alias to avoid confusion if still needed for Endpoint
 from google.protobuf import struct_pb2 # For endpoint model instances
+import vertexai.preview
 
 # --- Gemini Model Invocation (using new vertexai SDK) ---
 def invoke_gemini_model(project_id, location, model_name, text_prompt, file_details_list):
@@ -163,7 +164,7 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
 
     instance_dict = {
         "prompt": text_prompt, # Assuming the endpoint expects a 'prompt' field
-        "max_tokens": 4096,    # Example, adjust as needed
+        "max_tokens": 8192,    # Example, adjust as needed
         "temperature": 0.5,    # Example, adjust as needed
     }
 
@@ -189,13 +190,15 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
     sample_endpoint = f"{parsed_region}-aiplatform.googleapis.com"
     dedicated_domain = f"{parsed_endpoint_id_num}.{parsed_region}-{parsed_project_id_num}.prediction.vertexai.goog"
     print(f"Using dedicated domain for endpoint: {dedicated_domain}")
+    aip_endpoint_name = f"projects/{parsed_project_id_num}/locations/{parsed_region}/endpoints/{parsed_endpoint_id_num}"
+    endpointes = old_aiplatform.Endpoint(aip_endpoint_name)
 
     try:
         # Use PredictionServiceClient with custom endpoint
-        client_options = {"api_endpoint": sample_endpoint}
-        client = old_aiplatform.gapic.PredictionServiceClient(client_options=client_options)
+        #client_options = {"api_endpoint": sample_endpoint}
+        #client = old_aiplatform.gapic.PredictionServiceClient(client_options=client_options)
 
-        response = client.predict(endpoint=dedicated_domain, instances=instances)
+        response = endpointes.predict(instances=instances, use_dedicated_endpoint=True)
 
         # print(f"Raw Endpoint Response: {response}")
 
