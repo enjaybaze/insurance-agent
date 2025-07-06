@@ -1,7 +1,9 @@
 Flask>=2.0
-google-cloud-aiplatform==1.95.0
+google-cloud-aiplatform[generative_models]==1.49.0 # Pin to specific version known to work with extras
 google-cloud-storage>=2.0.0
 Pillow>=9.0.0
 PyPDF2>=3.0.0
 werkzeug>=2.0.0 # Already a Flask dependency, but good to be explicit for secure_filename
 requests>=2.20.0 # Often useful, good to have. Also a dependency of google libraries.
+openai>=1.0.0
+google-auth>=2.0.0 # For refreshing credentials for OpenAI SDK
