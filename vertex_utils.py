@@ -162,8 +162,22 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
     # Common pattern: {"prompt": "...", "max_tokens": ..., "temperature": ..., "images": ["gs://...", ...]}
     # We'll construct a generic one here. This is the MOST LIKELY part to need adjustment.
 
+    # Determine the correct input key based on the model type.
+    # For Gemma models deployed with Saxml, the key is "text_batch".
+    # For Llama models, this needs to be verified.
+    if "gemma" in endpoint_id.lower():
+        input_key = "text_batch"
+        print(f"Using input key 'text_batch' for Gemma model {endpoint_id}.")
+    elif "llama" in endpoint_id.lower():
+        input_key = "prompt" # Placeholder - VERIFY THIS for Llama models
+        print(f"Warning: Using default input key 'prompt' for Llama model {endpoint_id}. This may need adjustment if prompts are included in the response.")
+    else:
+        # Default for unknown model types, maintain original behavior before this change.
+        input_key = "prompt"
+        print(f"Warning: Unknown model type for endpoint {endpoint_id}. Defaulting to input key 'prompt'. This may need adjustment.")
+
     instance_dict = {
-        "prompt": text_prompt, # Assuming the endpoint expects a 'prompt' field
+        input_key: text_prompt,
         "max_tokens": 30000,    # Example, adjust as needed
         "temperature": 0.5,    # Example, adjust as needed
     }
