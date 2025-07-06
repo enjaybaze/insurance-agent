@@ -209,5 +209,50 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
 
 if __name__ == '__main__':
     print("vertex_utils.py loaded. Contains utilities for Vertex AI model and endpoint invocation.")
-    # ... (rest of __main__ block remains the same) ...
-```
+    # To test these functions directly, you would need:
+    # 1. GOOGLE_APPLICATION_CREDENTIALS set up or gcloud auth application-default login.
+    # 2. Environment variables for GCP_PROJECT_ID, GCP_LOCATION.
+    # 3. For Gemini: A valid GEMINI_PRO_MODEL_NAME (e.g., "gemini-1.5-pro-preview-0409").
+    #    Some GCS files uploaded and their gs:// URIs.
+    # 4. For Endpoint: A deployed Vertex AI Endpoint ID (LLAMA_ENDPOINT_ID or GEMMA_ENDPOINT_ID).
+    #    The endpoint must be configured to accept the payload format this script sends.
+
+    # Example Test (Conceptual - uncomment and fill with your details if testing)
+    # TEST_PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
+    # TEST_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+    # TEST_GEMINI_MODEL = os.getenv("GEMINI_PRO_MODEL_NAME") # e.g. gemini-1.5-pro-preview-0409
+    # TEST_LLAMA_ENDPOINT = os.getenv("LLAMA_ENDPOINT_ID")
+
+    # test_text_prompt = "System: You are a helpful assistant.\nUser: What is the capital of France? Also, look at this image."
+    # test_file_details = [
+    #     {"gcs_uri": "gs://your-gcs-bucket-name/path/to/your/image.jpg", "content_type": "image/jpeg", "original_filename": "image.jpg"}
+    # ]
+
+    # if TEST_PROJECT_ID and TEST_LOCATION and TEST_GEMINI_MODEL and test_file_details[0]["gcs_uri"] != "gs://your-gcs-bucket-name/path/to/your/image.jpg":
+    #     print(f"\n--- Testing Gemini ({TEST_GEMINI_MODEL}) ---")
+    #     gemini_response, gemini_error = invoke_gemini_model(
+    #         TEST_PROJECT_ID, TEST_LOCATION, TEST_GEMINI_MODEL, test_text_prompt, test_file_details
+    #     )
+    #     if gemini_error:
+    #         print(f"Gemini Test Error: {gemini_error}")
+    #     else:
+    #         print(f"Gemini Test Response:\n{gemini_response}")
+    # else:
+    #     print("\nSkipping Gemini direct test: Ensure GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION, GEMINI_PRO_MODEL_NAME are set and test_file_details GCS URI is updated.")
+
+    # if TEST_PROJECT_ID and TEST_LOCATION and TEST_LLAMA_ENDPOINT:
+    #     print(f"\n--- Testing Llama Endpoint ({TEST_LLAMA_ENDPOINT}) ---")
+    #     # Note: Llama endpoint might not support GCS URIs in the same way as Gemini.
+    #     # The payload for Llama might only take the text prompt, or require a different format for files.
+    #     # This test assumes it can handle the "gcs_files" key in the instance.
+    #     llama_response, llama_error = invoke_vertex_endpoint_model(
+    #         TEST_PROJECT_ID, TEST_LOCATION, TEST_LLAMA_ENDPOINT, test_text_prompt, test_file_details
+    #     )
+    #     if llama_error:
+    #         print(f"Llama Endpoint Test Error: {llama_error}")
+    #     else:
+    #         print(f"Llama Endpoint Test Response:\n{llama_response}")
+    # else:
+    #     print("\nSkipping Llama Endpoint direct test: Ensure GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION, LLAMA_ENDPOINT_ID are set.")
+
+    pass
