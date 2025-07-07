@@ -139,7 +139,7 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
     else:
         print(f"Model {endpoint_id} is not Gemma or Llama. PDF text extraction step skipped. File details (if any) are assumed to be part of text_prompt from app.py.")
 
-    print(f"Final Text prompt for OpenAI SDK (first 200 chars): {current_text_prompt[:200]}...")
+    print(f"Final Text prompt for OpenAI SDK (first 200 chars): {current_text_prompt}...")
 
     match = re.match(
         r"projects/(?P<project_id_from_ep>[^/]+)/locations/(?P<region_from_ep>[^/]+)/endpoints/(?P<endpoint_id_num>[^/]+)",
@@ -165,12 +165,12 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
 
         client = openai.OpenAI(base_url=base_url, api_key=creds.token)
 
-        max_tokens_for_openai = 30000
+        max_tokens_for_openai = 64000
         temperature_for_openai = 0.5
 
         messages = [{"role": "user", "content": current_text_prompt}]
 
-        print(f"Sending request to OpenAI compatible endpoint. User message (first 100 chars): {messages[0]['content'][:100]}...")
+        print(f"Sending request to OpenAI compatible endpoint. User message (first 100 chars): {messages[0]['content']}...")
 
         model_response = client.chat.completions.create(
             model="",
@@ -184,7 +184,7 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
            model_response.choices[0].message and \
            model_response.choices[0].message.content is not None:
             response_text = model_response.choices[0].message.content
-            print(f"Received response from OpenAI compatible endpoint (first 100 chars): {response_text[:100]}...")
+            print(f"Received response from OpenAI compatible endpoint (first 100 chars): {response_text}...")
             return response_text, None
         else:
             error_message = "OpenAI SDK call succeeded but response format was unexpected or content was empty."
