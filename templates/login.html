@@ -6,12 +6,12 @@
     <title>Login - FNOL Fraud Detection</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="login-page-body"> {/* Added class for specific login page styling */}
+<body class="login-page-body"> 
     <div class="app-container">
         <header class="app-header">
             <h1>FNOL Fraud Detection - Login</h1>
         </header>
-        <main class="main-content login-main-content"> {/* Added a class for specific main content styling if needed */}
+        <main class="main-content login-main-content"> 
             <div class="login-pane">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
@@ -31,7 +31,7 @@
                         <label for="password">Password:</label>
                         <input type="password" id="password" name="password" required>
                     </div>
-                    <button type="submit" class="button">Login</button> {/* Removed inline style, will be handled by .login-pane .button */}
+                    <button type="submit" class="button">Login</button>
                 </form>
             </div>
         </main>
