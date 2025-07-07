@@ -90,7 +90,7 @@ def invoke_vertex_endpoint_model(project_id, location, endpoint_id, text_prompt,
 
     current_text_prompt = str(text_prompt)
 
-    model_type_for_pdf_extraction = None
+    model_type_for_pdf_extraction = "Gemma"
     endpoint_id_lower = endpoint_id.lower()
     if "gemma" in endpoint_id_lower:
         model_type_for_pdf_extraction = "Gemma"
