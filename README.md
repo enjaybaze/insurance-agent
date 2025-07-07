@@ -1,4 +1,4 @@
-# Baze Insurance FNOL Agent
+# Insurance FNOL Agent
 
 Baze Insurance FNOL Agent is a web application designed to assist insurance claims handlers by providing an AI-powered analysis of First Notice of Loss (FNOL) submissions. The tool aims to identify potential fraud by analyzing user-provided claim details and uploaded documents/images, then returning a fraud confidence score and rationale.
 
