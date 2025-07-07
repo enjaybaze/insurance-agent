@@ -38,7 +38,8 @@ body {
     background-color: #1e1e1e; /* Slightly lighter dark shade for header */
     padding: 1rem 1.5rem;
     border-bottom: 1px solid #333; /* Subtle border */
-    text-align: left; /* Align title to the left like AI Studio */
+    text-align: left; /* Default Align title to the left */
+    position: relative; /* Needed for absolute positioning of logout button */
 }
 
 .app-header h1 {
@@ -312,13 +313,29 @@ input[type="file"]::file-selector-button:hover {
     }
     .login-pane {
         margin-top: 2rem; /* Add some space on mobile when header is present */
+        padding: 1.5rem; /* Reduce padding on mobile */
+    }
+    .login-page-body .app-header h1 {
+        font-size: 1.3em; /* Slightly smaller title on mobile for login */
     }
 }
 
 /* Login Page Specific Styles */
+.login-page-body .app-header h1 {
+    text-align: center; /* Center title only on login page */
+}
+
+.login-main-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1; /* Ensure it takes up available vertical space */
+    width: 100%;
+}
+
 .login-pane {
     width: 100%;
-    max-width: 450px; /* Slightly wider for better spacing */
+    max-width: 400px; /* Max width for the login card */
     background-color: #1e1e1e;
     border-radius: 8px;
     padding: 2.5rem; /* Increased padding */
@@ -340,12 +357,26 @@ input[type="file"]::file-selector-button:hover {
 }
 
 
-.login-pane .button { /* Style for login button if #submit-button style isn't general enough */
-    width: 100%;
+.login-pane .button {
+    /* Inherit general .button styles, then apply #submit-button specifics */
+    background-color: #bb86fc; /* Accent color from #submit-button */
+    color: #121212; /* Dark text from #submit-button */
+    font-weight: bold; /* from #submit-button */
+    border: none; /* from #submit-button */
+    padding: 0.8rem 1.5rem; /* from #submit-button */
+    font-size: 1.05em; /* from #submit-button */
+    border-radius: 4px; /* from #submit-button (already in general input, but good to be sure) */
+    cursor: pointer; /* from #submit-button (already in general .button) */
+    transition: background-color 0.3s ease, transform 0.1s ease; /* from #submit-button */
+    width: 100%; /* Specific to login button */
     margin-top: 1.5rem; /* More space above button */
-    padding: 0.9rem 1.5rem; /* Slightly larger padding for login button */
-    font-size: 1.1em;
 }
+
+.login-pane .button:hover {
+    background-color: #a050e0; /* Darker accent from #submit-button:hover */
+}
+/* .button:active is already defined and shared */
+
 
 /* Flashed Messages Styling (moved from inline) */
 .flashes {
