@@ -36,7 +36,10 @@ Baze Insurance FNOL Agent is a web application designed to assist insurance clai
 ├── gcs_utils.py          # Utilities for Google Cloud Storage interaction
 ├── metadata_utils.py     # Utilities for extracting file metadata
 ├── vertex_utils.py       # Utilities for Vertex AI model invocation
-├── index.html            # Main HTML file for the UI
+├── users.json            # Stores user credentials for login (default: admin/admin)
+├── templates/
+│   ├── index.html        # Main HTML file for the UI (after login)
+│   └── login.html        # Login page HTML
 ├── static/
 │   ├── script.js         # Frontend JavaScript
 │   └── style.css         # CSS styles
@@ -44,24 +47,34 @@ Baze Insurance FNOL Agent is a web application designed to assist insurance clai
 ├── AGENTS.md             # Instructions for AI agents working on this codebase
 └── README.md             # This file
 ```
-The `uploads/` directory is no longer used for persistent user file storage.
+
+## Authentication
+
+This application now includes a basic session-based authentication system.
+*   **Login:** Users must first navigate to `/login` (or will be redirected if trying to access protected pages) and log in.
+*   **Default Credentials:** A default user is created in `users.json`:
+    *   Username: `admin`
+    *   Password: `admin`
+*   **User Storage:** User credentials (username and password) are stored in `users.json`. For a production environment, passwords should be hashed and this file managed securely.
+*   **Protected Routes:** The main application page (`/`) and the analysis API (`/api/analyze`) require users to be logged in.
+*   **Logout:** A logout button is available on the main application page.
 
 ## Setup and Running
 
 ### Prerequisites
 
-*   Python 3.7+
+*   Python 3.9+ (updated due to newer library versions)
 *   Google Cloud SDK installed and configured (for Application Default Credentials).
 *   A Google Cloud Project with the Vertex AI API and Cloud Storage API enabled.
 *   A Google Cloud Storage bucket created for this application.
-*   If using custom models (Gemma, Llama), they must be deployed to Vertex AI Endpoints.
+*   If using custom models (Gemma, Llama), they must be deployed to Vertex AI Endpoints that are compatible with the OpenAI SDK chat completions interface.
 
 ### `requirements.txt`
 Ensure all dependencies are installed:
 ```bash
 pip install -r requirements.txt
 ```
-Key libraries include `Flask`, `google-cloud-aiplatform`, `google-cloud-storage`, `Pillow`, `PyPDF2`.
+Key libraries include `Flask`, `google-cloud-aiplatform==1.95.0`, `google-cloud-storage`, `Pillow`, `PyPDF2`, `openai`, `google-auth`.
 
 ### Environment Variables
 
@@ -74,7 +87,7 @@ The application requires the following environment variables:
     *   `GEMINI_FLASH_MODEL_NAME`: Name of the Gemini Flash model in Vertex AI (e.g., `gemini-1.5-flash-preview-0514`).
     *   `GEMMA_ENDPOINT_ID`: The full Vertex AI Endpoint resource name for your deployed Gemma model (e.g., `projects/YOUR_PROJECT_ID/locations/YOUR_LOCATION/endpoints/YOUR_GEMMA_ENDPOINT_ID`).
     *   `LLAMA_ENDPOINT_ID`: The full Vertex AI Endpoint resource name for your deployed Llama 3.3 model.
-    *   *(Note for custom models: Ensure your deployed model container expects a JSON payload with a `prompt` field (string) and an optional `gcs_files` field (list of objects, each with `gcs_uri`, `mime_type`, `filename`). The `vertex_utils.py` module sends this format. Adjust `vertex_utils.invoke_vertex_endpoint_model` if your model expects a different structure.)*
+    *   *(Note for custom models: These endpoints are now called using an OpenAI SDK compatible interface. Ensure your deployed model container supports this, typically via a vLLM or similar serving framework that exposes an OpenAI-compatible `/v1/chat/completions` route. PDF text extraction is handled in `vertex_utils.py` for Gemma and Llama models before calling the endpoint.)*
 
 **Important: Google Cloud Authentication**
 
@@ -100,33 +113,46 @@ The application uses Application Default Credentials (ADC) by default.
     ```
 3.  **Install dependencies:** `pip install -r requirements.txt`
 4.  **Set Environment Variables** (as described above). Ensure the GCS bucket exists.
-5.  **Authenticate with Google Cloud** (if local and not done: `gcloud auth application-default login`).
-6.  **Run the Flask application:**
+5.  **Initialize `users.json`:** If it doesn't exist, the application will attempt to create it or handle its absence gracefully, but for the first run with admin, ensure `users.json` exists with:
+    ```json
+    {
+        "admin": {
+            "password": "admin"
+        }
+    }
+    ```
+6.  **Authenticate with Google Cloud** (if local and not done: `gcloud auth application-default login`).
+7.  **Run the Flask application:**
     ```bash
     python app.py
     ```
-    Access at `http://127.0.0.1:5000/`.
+    The application will be accessible at `http://127.0.0.1:5000/`. You will be redirected to `/login`.
 
 ### How to Use
 
-1.  Open the application in your browser.
-2.  Select an AI model.
-3.  Enter claim details in the prompt area.
-4.  Upload relevant documents/images.
-5.  Click "Submit".
-6.  View the AI's fraud confidence score and rationale. Error messages will be displayed if issues occur.
+1.  Navigate to the application URL. You will be redirected to the login page.
+2.  Log in using the credentials from `users.json` (default: `admin`/`admin`).
+3.  Once logged in, you will see the main application page.
+4.  Select an AI model.
+5.  Enter claim details in the prompt area.
+6.  Upload relevant documents/images (PDFs will have text extracted for Gemma/Llama endpoint models).
+7.  Click "Analyze Claim".
+8.  View the AI's fraud confidence score and rationale.
+9.  Click "Logout" in the header to end your session.
 
 ## Development Status
 
-*   The application now makes actual calls to Vertex AI models and uses Google Cloud Storage.
+*   The application now makes actual calls to Vertex AI models (Gemini native, and OpenAI SDK compatible endpoints for Gemma/Llama) and uses Google Cloud Storage.
+*   PDF text extraction is implemented for Gemma and Llama endpoint models.
 *   Metadata is extracted from uploaded files.
 *   Error handling has been significantly improved.
+*   Basic session-based user authentication is implemented.
 
 ## Future Development Ideas
 
-*   User authentication.
+*   More robust user management (e.g., adding users, password hashing).
 *   UI display of extracted metadata.
-*   Streaming AI responses.
+*   Streaming AI responses for applicable models.
 *   More granular GCS file management (lifecycle rules, folders per claim).
 *   Unit and integration tests.
 
