@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baze Insurance FNOL Agent</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="app-container">
         <header class="app-header">
             <h1>Baze Insurance FNOL Agent</h1>
+            <a href="{{ url_for('logout') }}" class="button logout-button">Logout</a>
         </header>
         <main class="main-content">
             <div class="input-pane">
@@ -43,6 +44,6 @@
             </div>
         </main>
     </div>
-    <script src="/script.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
