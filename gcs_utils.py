@@ -141,3 +141,19 @@ if __name__ == '__main__':
     #         #     print(f"Successfully deleted {upload_result['blob_name']} after test.")
     # else:
     #     print("GCS_BUCKET_NAME_FOR_TESTING environment variable not set. Skipping direct test.")
+
+def get_gcs_file_bytes(bucket_name, blob_name):
+    """Downloads a blob from GCS and returns its content as bytes."""
+    try:
+        # storage_client should be initialized globally
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(blob_name)
+        file_bytes = blob.download_as_bytes()
+        print(f"Successfully downloaded gs://{bucket_name}/{blob_name} ({len(file_bytes)} bytes)")
+        return file_bytes
+    except google.cloud.exceptions.NotFound: # Make sure this exception is imported or use fully qualified name
+        print(f"Error: Blob gs://{bucket_name}/{blob_name} not found.")
+        return None
+    except Exception as e: # Catching general exception
+        print(f"Error downloading GCS file gs://{bucket_name}/{blob_name}: {type(e).__name__} - {e}")
+        return None
